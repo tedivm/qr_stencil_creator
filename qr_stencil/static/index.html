@@ -176,13 +176,13 @@
 
   <form id="textForm">
 
-    <label for="textInput" id="textInputLabel">Enter text:</label>
+    <label for="textInput" id="textInputLabel">QR Content ℹ️:</label>
     <input type="text" id="textInput" name="msg" placeholder="Enter your text here" required>
     <div class="help-popup" id="textInputHelpPopup">
       This is the text that will be embedded in the QRCode. The most common use case is to embed a URL.
     </div>
 
-    <label for="errorLevel" id="errorLevelLabel">Allowed Error Level:</label>
+    <label for="errorLevel" id="errorLevelLabel">Allowed Error Level ℹ️:</label>
     <select id="errorLevel" name="error_level" required>
       <option value="7">7</option>
       <option value="15" selected>15</option>
@@ -191,14 +191,14 @@
     </select>
     <div class="help-popup" id="errorLevelHelpPopup">
       The higher this is the more damaged the QR code can be and still work, at the expense of requiring more data and a
-      larger QR code.
+      larger QR code. For smaller stencils you may want to use a lower number.
     </div>
 
-    <label for="sizeRatio" id="sizeRatioLabel">Grid Percentage Fill:</label>
+    <label for="sizeRatio" id="sizeRatioLabel">Grid Percentage Fill ℹ️:</label>
     <input type="number" id="sizeRatio" name="size_ratio" value="80" step="1" min="1" max="100" required>
     <div class="help-popup" id="sizeRatioHelpPopup">
       The smaller this is the more space between blocks. This will increase the error level but create more physically
-      stable stencils.
+      stable stencils. You want to use the highest number allows your cutter to create the stencil you want.
     </div>
 
     <button type="submit">Generate Image</button>
@@ -211,12 +211,12 @@
     <div id="qrDetails" style="display: block;">
       <table>
         <tr>
-          <td>Text:</td>
+          <td>QR Content:</td>
           <td id="qrText">Enter your text here</td>
         </tr>
         <tr>
           <td>Allowed Error Level:</td>
-          <td id="qrErrorLevel">15</td>
+          <td id="qrErrorLevel">15%</td>
         </tr>
         <tr>
           <td>Grid Percentage Fill:</td>
@@ -247,7 +247,7 @@
       const qrDetails = document.getElementById('qrDetails');
       qrDetails.style.display = 'block';
       document.getElementById('qrText').textContent = textInput;
-      document.getElementById('qrErrorLevel').textContent = errorLevel;
+      document.getElementById('qrErrorLevel').textContent = `${errorLevel}%`;
       document.getElementById('qrSizeRatio').textContent = `${sizeRatio}%`;
     });
 
