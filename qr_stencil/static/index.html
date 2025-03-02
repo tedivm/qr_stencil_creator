@@ -232,6 +232,18 @@
       Check this box if you want the QR code to include stencil cut lines.
     </div>
 
+    <div class="inline-label">
+      <label for="style" id="styleLabel">QR Style ℹ️:</label>
+      <select id="style" name="style" required>
+        <option value="square" selected>Square</option>
+        <option value="circle">Circle</option>
+      </select>
+    </div>
+    <div class="help-popup" id="styleHelpPopup">
+      Choose the style of the QR code. "Square" is the default style, while "Circle" will create a QR code with circular
+      modules.
+    </div>
+
     <button type="submit">Generate Image</button>
 
   </form>
@@ -257,6 +269,10 @@
           <td>Stencil Cut Lines:</td>
           <td id="qrStencil">Yes</td>
         </tr>
+        <tr>
+          <td>QR Style:</td>
+          <td id="qrStyle">Square</td>
+        </tr>
       </table>
     </div>
     <button id="saveButton" style="display: block;">Save Image</button>
@@ -274,7 +290,8 @@
       const errorLevel = document.getElementById('errorLevel').value;
       const sizeRatio = document.getElementById('sizeRatio').value;
       const stencil = document.getElementById('stencil').checked ? 'true' : 'false';
-      const imageUrl = `/image.svg?msg=${encodeURIComponent(textInput)}&error_level=${errorLevel}&size_ratio=${sizeRatio / 100}&stencil=${stencil}`;
+      const style = document.getElementById('style').value;
+      const imageUrl = `/image.svg?msg=${encodeURIComponent(textInput)}&error_level=${errorLevel}&size_ratio=${sizeRatio / 100}&stencil=${stencil}&style=${style}`;
       const resultImage = document.getElementById('resultImage');
       resultImage.src = imageUrl;
       resultImage.style.display = 'block';
@@ -286,6 +303,7 @@
       document.getElementById('qrErrorLevel').textContent = `${errorLevel}%`;
       document.getElementById('qrSizeRatio').textContent = `${sizeRatio}%`;
       document.getElementById('qrStencil').textContent = stencil === 'true' ? 'Yes' : 'No';
+      document.getElementById('qrStyle').textContent = style.charAt(0).toUpperCase() + style.slice(1);
     });
 
     document.getElementById('saveButton').addEventListener('click', function () {
@@ -296,37 +314,22 @@
       link.click();
     });
 
-    document.getElementById('textInputLabel').addEventListener('mouseover', function () {
-      document.getElementById('textInputHelpPopup').style.display = 'block';
-    });
+    function addPopupEvents(labelId, popupId) {
+      const label = document.getElementById(labelId);
+      const popup = document.getElementById(popupId);
+      label.addEventListener('mouseover', function () {
+        popup.style.display = 'block';
+      });
+      label.addEventListener('mouseout', function () {
+        popup.style.display = 'none';
+      });
+    }
 
-    document.getElementById('textInputLabel').addEventListener('mouseout', function () {
-      document.getElementById('textInputHelpPopup').style.display = 'none';
-    });
-
-    document.getElementById('errorLevelLabel').addEventListener('mouseover', function () {
-      document.getElementById('errorLevelHelpPopup').style.display = 'block';
-    });
-
-    document.getElementById('errorLevelLabel').addEventListener('mouseout', function () {
-      document.getElementById('errorLevelHelpPopup').style.display = 'none';
-    });
-
-    document.getElementById('sizeRatioLabel').addEventListener('mouseover', function () {
-      document.getElementById('sizeRatioHelpPopup').style.display = 'block';
-    });
-
-    document.getElementById('sizeRatioLabel').addEventListener('mouseout', function () {
-      document.getElementById('sizeRatioHelpPopup').style.display = 'none';
-    });
-
-    document.getElementById('stencilLabel').addEventListener('mouseover', function () {
-      document.getElementById('stencilHelpPopup').style.display = 'block';
-    });
-
-    document.getElementById('stencilLabel').addEventListener('mouseout', function () {
-      document.getElementById('stencilHelpPopup').style.display = 'none';
-    });
+    addPopupEvents('textInputLabel', 'textInputHelpPopup');
+    addPopupEvents('errorLevelLabel', 'errorLevelHelpPopup');
+    addPopupEvents('sizeRatioLabel', 'sizeRatioHelpPopup');
+    addPopupEvents('stencilLabel', 'stencilHelpPopup');
+    addPopupEvents('styleLabel', 'styleHelpPopup');
   </script>
 </body>
 

@@ -11,18 +11,24 @@ from qrcode.image.styles.moduledrawers.svg import (
     SvgSquareDrawer,
 )
 
-drawers = {
-    "SvgSquareDrawer": SvgSquareDrawer,
-    "SvgCircleDrawer": SvgCircleDrawer,
-    "SvgPathSquareDrawer": SvgPathSquareDrawer,
-    "SvgPathCircleDrawer": SvgPathCircleDrawer,
-}
-
 error_levels = {
     7: qrcode.constants.ERROR_CORRECT_L,
     15: qrcode.constants.ERROR_CORRECT_M,
     25: qrcode.constants.ERROR_CORRECT_Q,
     30: qrcode.constants.ERROR_CORRECT_H,
+}
+
+default_factory = qrcode.image.svg.SvgImage
+
+styles = {
+    qrcode.image.svg.SvgImage: {
+        "square": SvgSquareDrawer,
+        "circle": SvgCircleDrawer,
+    },
+    qrcode.image.svg.SvgPathImage: {
+        "square": SvgPathSquareDrawer,
+        "circle": SvgPathCircleDrawer,
+    },
 }
 
 
@@ -86,18 +92,23 @@ class EyeDrawer(SvgSquareDrawer):
 
 
 def generate_qr_svg(
-    data,
-    drawer=None,
+    data: str,
+    error_level: int = 15,
+    box_size: int = 100,
+    border: int = 0,
+    size_ratio: float = 0.8,
+    stencil: bool = True,
+    style: str = "square",
     eye_drawer=None,
-    error_level=15,
-    box_size=100,
-    border=0,
-    size_ratio=0.8,
-    stencil=True,
+    factory_class=default_factory,
 ):
-    if drawer is None:
-        drawer = "SvgSquareDrawer"
-    module_drawer = drawers[drawer](size_ratio=decimal.Decimal(size_ratio))
+
+    drawer_class = styles.get(factory_class, {}).get(style, None)
+    if drawer_class is None:
+        raise ValueError(
+            f"Invalid style {style} factory class {factory_class.__name__}"
+        )
+    module_drawer = drawer_class(size_ratio=decimal.Decimal(size_ratio))
 
     eye_drawer = None
     if stencil:
@@ -107,13 +118,12 @@ def generate_qr_svg(
         raise ValueError("Invalid error level")
     error_correction = error_levels[error_level]
 
-    factory = qrcode.image.svg.SvgImage
     qr = qrcode.QRCode(
         version=None,
         error_correction=error_correction,
         box_size=box_size,
         border=border,
-        image_factory=factory,
+        image_factory=factory_class,
     )
     qr.add_data(data)
 

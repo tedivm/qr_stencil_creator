@@ -1,7 +1,10 @@
 import os
+from enum import Enum
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from .settings import settings
 from .utils.qr import generate_qr_svg
@@ -25,29 +28,36 @@ async def root():
     return Response(content=content, media_type="text/html")
 
 
+class ImageStyles(str, Enum):
+    circle: str = "circle"
+    square: str = "square"
+
+
+class ImageSchema(BaseModel):
+    msg: str
+    error_level: int = 15
+    box_size: int = 100
+    border: int = 0
+    size_ratio: float = 0.8
+    stencil: bool = True
+    style: ImageStyles = "square"
+
+
 @app.get(
     "/image.{format}",
     responses={200: {"content": {"image/svg": {}}}},
     response_class=Response,
 )
-async def qr_stencil(
-    msg: str,
-    format: str,
-    error_level: int = 15,
-    box_size: int = 100,
-    border: int = 0,
-    size_ratio: float = 0.8,
-    stencil: bool = True,
-):
-    print(stencil)
+async def qr_stencil(img_request: Annotated[ImageSchema, Query()], format: str):
     if format == "svg":
         stencil = generate_qr_svg(
-            msg,
-            error_level=error_level,
-            box_size=box_size,
-            border=border,
-            size_ratio=size_ratio,
-            stencil=stencil,
+            img_request.msg,
+            error_level=img_request.error_level,
+            box_size=img_request.box_size,
+            border=img_request.border,
+            size_ratio=img_request.size_ratio,
+            stencil=img_request.stencil,
+            style=img_request.style,
         )
         return Response(content=stencil, media_type="image/svg+xml")
     else:
