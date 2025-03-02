@@ -6,5 +6,4 @@ ENV APP_MODULE=qr_stencil.www:app
 COPY requirements.txt /requirements.txt
 RUN pip install --no-cache-dir -r /requirements.txt
 
-COPY ./docker/www/prestart.sh /app/prestart.sh
 COPY ./ /app

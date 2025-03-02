@@ -1,10 +1,9 @@
 services:
   www:
     build:
-      dockerfile: ./dockerfile.www
+      dockerfile: ./dockerfile
     volumes:
       - "./qr_stencil:/app/qr_stencil"
-      - "./docker/www/prestart.sh:/app/prestart.sh"
     ports:
       - "80:80"
     environment:

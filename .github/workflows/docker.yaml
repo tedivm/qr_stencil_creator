@@ -13,11 +13,6 @@ jobs:
     name: Push Container Image to GHCR
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        image:
-          - www
-
     permissions:
       contents: read
       packages: write
@@ -47,7 +42,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}.${{ matrix.image }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -60,7 +55,7 @@ jobs:
         with:
           context: .
           push: true
-          file: dockerfile.${{ matrix.image }}
+          file: dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
