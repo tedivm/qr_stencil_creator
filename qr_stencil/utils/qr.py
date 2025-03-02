@@ -27,10 +27,7 @@ error_levels = {
 
 
 class EyeDrawer(SvgSquareDrawer):
-
-    def __init__(
-        self, *, size_ratio: decimal.Decimal | float = decimal.Decimal(1), **kwargs
-    ):
+    def __init__(self, *, size_ratio: decimal.Decimal | float = decimal.Decimal(1), **kwargs):
         self.size_ratio = decimal.Decimal(1)
         self.eye_size_ratio = float(size_ratio)
 
@@ -66,7 +63,6 @@ class EyeDrawer(SvgSquareDrawer):
         return (int(x), int(y))
 
     def get_cut_grids(self):
-
         cut_grids = [
             # Top Left
             (0, 1),
@@ -96,7 +92,6 @@ def generate_qr_svg(
     border=0,
     size_ratio=0.8,
 ):
-
     if drawer is None:
         drawer = "SvgSquareDrawer"
     module_drawer = drawers[drawer](size_ratio=decimal.Decimal(size_ratio))

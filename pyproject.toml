@@ -9,7 +9,7 @@ dependencies = [
   "pydantic~=2.0",
   "pydantic-settings",
   "qrcode",
-  "typer",
+  "typer"
 ]
 description = ""
 dynamic = ["version"]
@@ -30,7 +30,7 @@ dev = [
   "ruamel.yaml",
   "ruff",
   "toml-sort",
-  "uv",
+  "uv"
 ]
 
 [project.scripts]
@@ -40,7 +40,7 @@ qr_stencil = "qr_stencil.cli:app"
 omit = [
   "./qr_stencil/_version.py",
   "./qr_stencil/__init__.py",
-  "./tests/*",
+  "./tests/*"
 ]
 
 [tool.mypy]
