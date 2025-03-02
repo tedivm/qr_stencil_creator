@@ -56,7 +56,7 @@ def draw_eye(img, corner, unit_size, border_size, size_ratio):
     else:
         raise ValueError("Invalid corner")
 
-    buffer = img.width - int(size_ratio * img.width)
+    buffer = (img.width - int(size_ratio * img.width)) * 4
 
     # Top Line
     img._img.append(
