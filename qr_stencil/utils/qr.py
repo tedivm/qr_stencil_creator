@@ -2,7 +2,7 @@ import decimal
 from io import BytesIO
 
 import qrcode
-import qrcode.image.svg
+import qrcode.image.svg as qr_svg
 from qrcode.compat.etree import ET
 from qrcode.image.styles.moduledrawers.svg import (
     SvgCircleDrawer,
@@ -18,77 +18,100 @@ error_levels = {
     30: qrcode.constants.ERROR_CORRECT_H,
 }
 
-default_factory = qrcode.image.svg.SvgImage
+default_factory = qr_svg.SvgImage
 
 styles = {
-    qrcode.image.svg.SvgImage: {
+    qr_svg.SvgImage: {
         "square": SvgSquareDrawer,
         "circle": SvgCircleDrawer,
     },
-    qrcode.image.svg.SvgPathImage: {
+    qr_svg.SvgPathImage: {
         "square": SvgPathSquareDrawer,
         "circle": SvgPathCircleDrawer,
     },
 }
 
 
-class EyeDrawer(SvgSquareDrawer):
-    def __init__(
-        self, *, size_ratio: decimal.Decimal | float = decimal.Decimal(1), **kwargs
-    ):
-        self.size_ratio = decimal.Decimal(1)
-        self.eye_size_ratio = float(size_ratio)
-
-    def stencil_el(self, box):
-        coords = self.coords(box)
-        return ET.Element(
-            self.tag_qname,  # type: ignore
-            x=self.img.units(coords.x0),
-            y=self.img.units(coords.y0),
-            width=self.unit_size,
-            height=self.img.units(float(self.box_size) * float(self.eye_size_ratio)),
-        )
-
+class NullDrawer(SvgSquareDrawer):
     def drawrect(self, box, is_active: bool):
-        if not is_active:
-            return
+        return
 
-        coords = self.get_grid_position(box)
-        get_cut_grids = self.get_cut_grids()
 
-        if coords in get_cut_grids:
-            self.img._img.append(self.stencil_el(box))
-        else:
-            self.img._img.append(self.el(box))
+def add_eyes(img: qr_svg.SvgImage, size_ratio: float):
+    for corner in ["top_left", "top_right", "bottom_left"]:
+        draw_eye(img, corner, img.box_size, img.border, size_ratio)
 
-    def get_grid_position(self, box):
-        top_left_x = box[0][0]
-        top_left_y = box[0][1]
 
-        x = (top_left_x - self.img.border) / self.img.box_size
-        y = (top_left_y - self.img.border) / self.img.box_size
+def draw_eye(img, corner, unit_size, border_size, size_ratio):
 
-        return (int(x), int(y))
+    if corner == "top_left":
+        start_x = border_size
+        start_y = border_size
+    elif corner == "top_right":
+        start_x = (img.pixel_size - (unit_size * 7)) - border_size
+        start_y = border_size
+    elif corner == "bottom_left":
+        start_x = border_size
+        start_y = (img.pixel_size - (unit_size * 7)) - border_size
+    else:
+        raise ValueError("Invalid corner")
 
-    def get_cut_grids(self):
-        cut_grids = [
-            # Top Left
-            (0, 1),
-            (0, 5),
-            (6, 1),
-            (6, 5),
-            # Top Right
-            (self.img.width - 7, 1),
-            (self.img.width - 7, 5),
-            (self.img.width - 1, 1),
-            (self.img.width - 1, 5),
-            # Bottom Left
-            (0, self.img.width - 6),
-            (0, self.img.width - 2),
-            (6, self.img.width - 6),
-            (6, self.img.width - 2),
-        ]
-        return cut_grids
+    buffer = img.width - int(size_ratio * img.width)
+
+    # Top Line
+    img._img.append(
+        ET.Element(
+            ET.QName(img._SVG_namespace, "rect"),
+            x=img.units(float(start_x)),
+            y=img.units(float(start_y)),
+            width=img.units(float(unit_size) * 7),
+            height=img.units(float(unit_size)),
+        )
+    )
+
+    # Bottom Line
+    img._img.append(
+        ET.Element(
+            ET.QName(img._SVG_namespace, "rect"),
+            x=img.units(float(start_x)),
+            y=img.units(float(start_y + (unit_size * 6))),
+            width=img.units(float(unit_size) * 7),
+            height=img.units(float(unit_size)),
+        )
+    )
+
+    # Left Line
+    img._img.append(
+        ET.Element(
+            ET.QName(img._SVG_namespace, "rect"),
+            x=img.units(float(start_x)),
+            y=img.units(float(start_y + unit_size + buffer)),
+            width=img.units(float(unit_size)),
+            height=img.units((float(unit_size) * 5) - (buffer * 2)),
+        )
+    )
+
+    # Right Line
+    img._img.append(
+        ET.Element(
+            ET.QName(img._SVG_namespace, "rect"),
+            x=img.units(float(start_x + (unit_size * 6))),
+            y=img.units(float(start_y + unit_size + buffer)),
+            width=img.units(float(unit_size)),
+            height=img.units((float(unit_size) * 5) - (buffer * 2)),
+        )
+    )
+
+    # Square
+    img._img.append(
+        ET.Element(
+            ET.QName(img._SVG_namespace, "rect"),
+            x=img.units(float(start_x + (unit_size * 2))),
+            y=img.units(float(start_y + (unit_size * 2))),
+            width=img.units(float(unit_size) * 3),
+            height=img.units(float(unit_size) * 3),
+        )
+    )
 
 
 def generate_qr_svg(
@@ -110,10 +133,6 @@ def generate_qr_svg(
         )
     module_drawer = drawer_class(size_ratio=decimal.Decimal(size_ratio))
 
-    eye_drawer = None
-    if stencil:
-        eye_drawer = EyeDrawer(size_ratio=decimal.Decimal(size_ratio))
-
     if error_level not in error_levels:
         raise ValueError("Invalid error level")
     error_correction = error_levels[error_level]
@@ -129,8 +148,11 @@ def generate_qr_svg(
 
     img = qr.make_image(
         module_drawer=module_drawer,
-        eye_drawer=eye_drawer,
+        eye_drawer=NullDrawer(),
     )
+
+    stencil_ratio = size_ratio if stencil else 1
+    add_eyes(img, stencil_ratio)
 
     stream = BytesIO()
     img.save(stream)
