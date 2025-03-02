@@ -1,8 +1,11 @@
 name: Publish Docker Images
 
 on:
-  release:
-    types: [published]
+  pull_request:
+
+  push:
+    tags:
+      - "v*.*.*"
 
 env:
   REGISTRY: ghcr.io
