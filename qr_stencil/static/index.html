@@ -165,6 +165,24 @@
       z-index: 1000;
       max-width: 300px;
     }
+
+    .inline-label {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .inline-label label {
+      margin-right: 10px;
+      margin-bottom: 0;
+    }
+
+    .inline-label input[type="number"],
+    .inline-label select,
+    .inline-label input[type="checkbox"] {
+      width: auto;
+      flex: 1;
+    }
   </style>
 </head>
 
@@ -183,23 +201,35 @@
       This is the text that will be embedded in the QRCode. The most common use case is to embed a URL.
     </div>
 
-    <label for="errorLevel" id="errorLevelLabel">Allowed Error Level ℹ️:</label>
-    <select id="errorLevel" name="error_level" required>
-      <option value="7">7</option>
-      <option value="15" selected>15</option>
-      <option value="25">25</option>
-      <option value="30">30</option>
-    </select>
+    <div class="inline-label">
+      <label for="errorLevel" id="errorLevelLabel">Allowed Error Level ℹ️:</label>
+      <select id="errorLevel" name="error_level" required>
+        <option value="7">7</option>
+        <option value="15" selected>15</option>
+        <option value="25">25</option>
+        <option value="30">30</option>
+      </select>
+    </div>
     <div class="help-popup" id="errorLevelHelpPopup">
       The higher this is the more damaged the QR code can be and still work, at the expense of requiring more data and a
       larger QR code. For smaller stencils you may want to use a lower number.
     </div>
 
-    <label for="sizeRatio" id="sizeRatioLabel">Grid Percentage Fill ℹ️:</label>
-    <input type="number" id="sizeRatio" name="size_ratio" value="80" step="1" min="1" max="100" required>
+    <div class="inline-label">
+      <label for="sizeRatio" id="sizeRatioLabel">Grid Percentage Fill ℹ️:</label>
+      <input type="number" id="sizeRatio" name="size_ratio" value="80" step="1" min="1" max="100" required>
+    </div>
     <div class="help-popup" id="sizeRatioHelpPopup">
       The smaller this is the more space between blocks. This will increase the error level but create more physically
       stable stencils. You want to use the highest number allows your cutter to create the stencil you want.
+    </div>
+
+    <div class="inline-label">
+      <label for="stencil" id="stencilLabel">Include Stencil Cut Lines ℹ️:</label>
+      <input type="checkbox" id="stencil" name="stencil" checked>
+    </div>
+    <div class="help-popup" id="stencilHelpPopup">
+      Check this box if you want the QR code to include stencil cut lines.
     </div>
 
     <button type="submit">Generate Image</button>
@@ -207,7 +237,7 @@
   </form>
 
   <div id="imageContainer">
-    <img id="resultImage" src="/image.svg?msg=Enter%20your%20text%20here&error_level=15&size_ratio=0.8"
+    <img id="resultImage" src="/image.svg?msg=Enter%20your%20text%20here&error_level=15&size_ratio=0.8&stencil=true"
       alt="Generated Image" class="largeImage" style="display: block;">
     <div id="qrDetails" style="display: block;">
       <table>
@@ -222,6 +252,10 @@
         <tr>
           <td>Grid Percentage Fill:</td>
           <td id="qrSizeRatio">80%</td>
+        </tr>
+        <tr>
+          <td>Stencil Cut Lines:</td>
+          <td id="qrStencil">Yes</td>
         </tr>
       </table>
     </div>
@@ -239,7 +273,8 @@
       const textInput = document.getElementById('textInput').value;
       const errorLevel = document.getElementById('errorLevel').value;
       const sizeRatio = document.getElementById('sizeRatio').value;
-      const imageUrl = `/image.svg?msg=${encodeURIComponent(textInput)}&error_level=${errorLevel}&size_ratio=${sizeRatio / 100}`;
+      const stencil = document.getElementById('stencil').checked ? 'true' : 'false';
+      const imageUrl = `/image.svg?msg=${encodeURIComponent(textInput)}&error_level=${errorLevel}&size_ratio=${sizeRatio / 100}&stencil=${stencil}`;
       const resultImage = document.getElementById('resultImage');
       resultImage.src = imageUrl;
       resultImage.style.display = 'block';
@@ -250,6 +285,7 @@
       document.getElementById('qrText').textContent = textInput;
       document.getElementById('qrErrorLevel').textContent = `${errorLevel}%`;
       document.getElementById('qrSizeRatio').textContent = `${sizeRatio}%`;
+      document.getElementById('qrStencil').textContent = stencil === 'true' ? 'Yes' : 'No';
     });
 
     document.getElementById('saveButton').addEventListener('click', function () {
@@ -282,6 +318,14 @@
 
     document.getElementById('sizeRatioLabel').addEventListener('mouseout', function () {
       document.getElementById('sizeRatioHelpPopup').style.display = 'none';
+    });
+
+    document.getElementById('stencilLabel').addEventListener('mouseover', function () {
+      document.getElementById('stencilHelpPopup').style.display = 'block';
+    });
+
+    document.getElementById('stencilLabel').addEventListener('mouseout', function () {
+      document.getElementById('stencilHelpPopup').style.display = 'none';
     });
   </script>
 </body>

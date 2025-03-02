@@ -27,7 +27,9 @@ error_levels = {
 
 
 class EyeDrawer(SvgSquareDrawer):
-    def __init__(self, *, size_ratio: decimal.Decimal | float = decimal.Decimal(1), **kwargs):
+    def __init__(
+        self, *, size_ratio: decimal.Decimal | float = decimal.Decimal(1), **kwargs
+    ):
         self.size_ratio = decimal.Decimal(1)
         self.eye_size_ratio = float(size_ratio)
 
@@ -91,12 +93,15 @@ def generate_qr_svg(
     box_size=100,
     border=0,
     size_ratio=0.8,
+    stencil=True,
 ):
     if drawer is None:
         drawer = "SvgSquareDrawer"
     module_drawer = drawers[drawer](size_ratio=decimal.Decimal(size_ratio))
 
-    eye_drawer = EyeDrawer(size_ratio=decimal.Decimal(size_ratio))
+    eye_drawer = None
+    if stencil:
+        eye_drawer = EyeDrawer(size_ratio=decimal.Decimal(size_ratio))
 
     if error_level not in error_levels:
         raise ValueError("Invalid error level")

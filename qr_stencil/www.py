@@ -37,7 +37,9 @@ async def qr_stencil(
     box_size: int = 100,
     border: int = 0,
     size_ratio: float = 0.8,
+    stencil: bool = True,
 ):
+    print(stencil)
     if format == "svg":
         stencil = generate_qr_svg(
             msg,
@@ -45,6 +47,7 @@ async def qr_stencil(
             box_size=box_size,
             border=border,
             size_ratio=size_ratio,
+            stencil=stencil,
         )
         return Response(content=stencil, media_type="image/svg+xml")
     else:
