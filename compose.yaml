@@ -9,3 +9,4 @@ services:
     environment:
       IS_DEV: true
       RELOAD: true
+      PLAUSIBLE_DOMAIN: "plausible.example.com"

@@ -1,9 +1,9 @@
 import os
 
 from fastapi import FastAPI, HTTPException, Response
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from .settings import settings
 from .utils.qr import generate_qr_svg
 
 app = FastAPI()
@@ -14,10 +14,15 @@ app.mount("/static", StaticFiles(directory=static_file_path), name="static")
 
 @app.get("/", include_in_schema=False)
 async def root():
-    return FileResponse(
-        static_file_path + "/index.html",
-        media_type="text/html",
-    )
+    plausible_tag = ""
+    if settings.plausible_domain:
+        plausible_tag = f'<script defer data-domain="{settings.plausible_domain}" src="https://plausible.io/js/script.js"></script>'
+
+    with open(static_file_path + "/index.html", "r") as f:
+        content = f.read()
+        content = content.replace("{{plausible_tag}}", plausible_tag)
+
+    return Response(content=content, media_type="text/html")
 
 
 @app.get(
