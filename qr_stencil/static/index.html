@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Stencil Creator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #555;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: calc(100% - 22px);
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #imageContainer {
+      text-align: center;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 80%;
+      max-width: 400px;
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #resultImage {
+      max-width: 100%;
+      height: auto;
+      display: none;
+      margin: auto;
+    }
+
+    .largeImage {
+      width: 100%;
+      height: auto;
+    }
+
+    #saveButton {
+      display: none;
+      margin-top: 20px;
+      background-color: #28a745;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    #saveButton:hover {
+      background-color: #218838;
+    }
+
+    #qrDetails {
+      display: none;
+      margin-top: 10px;
+      color: #555;
+      background-color: #f9f9f9;
+      padding: 10px;
+      border-radius: 4px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #qrDetails table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    #qrDetails td {
+      padding: 5px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    #qrDetails td:last-child {
+      text-align: right;
+    }
+
+    .help-icon {
+      cursor: pointer;
+      margin-left: 5px;
+      color: #007BFF;
+    }
+
+    .help-popup {
+      display: none;
+      position: absolute;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      max-width: 300px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>QR Stencil Creator</h1>
+
+  <p>This tool allows you to generate QR Codes that can be used to create stencils that can be cut out with electronic
+    cutters or laser printers. Simply enter the text you want to encode, and click "Generate Image" to see your QR Code.
+    You can then save the generated image to your computer.</p>
+
+  <form id="textForm">
+
+    <label for="textInput" id="textInputLabel">Enter text:</label>
+    <input type="text" id="textInput" name="msg" placeholder="Enter your text here" required>
+    <div class="help-popup" id="textInputHelpPopup">
+      This is the text that will be embedded in the QRCode. The most common use case is to embed a URL.
+    </div>
+
+    <label for="errorLevel" id="errorLevelLabel">Allowed Error Level:</label>
+    <select id="errorLevel" name="error_level" required>
+      <option value="7">7</option>
+      <option value="15" selected>15</option>
+      <option value="25">25</option>
+      <option value="30">30</option>
+    </select>
+    <div class="help-popup" id="errorLevelHelpPopup">
+      The higher this is the more damaged the QR code can be and still work, at the expense of requiring more data and a
+      larger QR code.
+    </div>
+
+    <label for="sizeRatio" id="sizeRatioLabel">Grid Percentage Fill:</label>
+    <input type="number" id="sizeRatio" name="size_ratio" value="80" step="1" min="1" max="100" required>
+    <div class="help-popup" id="sizeRatioHelpPopup">
+      The smaller this is the more space between blocks. This will increase the error level but create more physically
+      stable stencils.
+    </div>
+
+    <button type="submit">Generate Image</button>
+
+  </form>
+
+  <div id="imageContainer">
+    <img id="resultImage" src="/image.svg?msg=Enter%20your%20text%20here&error_level=15&size_ratio=0.8"
+      alt="Generated Image" class="largeImage" style="display: block;">
+    <div id="qrDetails" style="display: block;">
+      <table>
+        <tr>
+          <td>Text:</td>
+          <td id="qrText">Enter your text here</td>
+        </tr>
+        <tr>
+          <td>Allowed Error Level:</td>
+          <td id="qrErrorLevel">15</td>
+        </tr>
+        <tr>
+          <td>Grid Percentage Fill:</td>
+          <td id="qrSizeRatio">80%</td>
+        </tr>
+      </table>
+    </div>
+    <button id="saveButton" style="display: block;">Save Image</button>
+  </div>
+
+  <footer>
+    <p>This was built by <a href="https://blog.tedivm.com" target="_blank">Robert Hafner</a>. You can find this project
+      on <a href="https://github.com/tedivm/qr_stencil_creator" target="_blank">Github</a>.</p>
+  </footer>
+
+  <script>
+    document.getElementById('textForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const textInput = document.getElementById('textInput').value;
+      const errorLevel = document.getElementById('errorLevel').value;
+      const sizeRatio = document.getElementById('sizeRatio').value;
+      const imageUrl = `/image.svg?msg=${encodeURIComponent(textInput)}&error_level=${errorLevel}&size_ratio=${sizeRatio / 100}`;
+      const resultImage = document.getElementById('resultImage');
+      resultImage.src = imageUrl;
+      resultImage.style.display = 'block';
+      resultImage.classList.add('largeImage');
+      document.getElementById('saveButton').style.display = 'block';
+      const qrDetails = document.getElementById('qrDetails');
+      qrDetails.style.display = 'block';
+      document.getElementById('qrText').textContent = textInput;
+      document.getElementById('qrErrorLevel').textContent = errorLevel;
+      document.getElementById('qrSizeRatio').textContent = `${sizeRatio}%`;
+    });
+
+    document.getElementById('saveButton').addEventListener('click', function () {
+      const resultImage = document.getElementById('resultImage');
+      const link = document.createElement('a');
+      link.href = resultImage.src;
+      link.download = 'qr_code.svg';
+      link.click();
+    });
+
+    document.getElementById('textInputLabel').addEventListener('mouseover', function () {
+      document.getElementById('textInputHelpPopup').style.display = 'block';
+    });
+
+    document.getElementById('textInputLabel').addEventListener('mouseout', function () {
+      document.getElementById('textInputHelpPopup').style.display = 'none';
+    });
+
+    document.getElementById('errorLevelLabel').addEventListener('mouseover', function () {
+      document.getElementById('errorLevelHelpPopup').style.display = 'block';
+    });
+
+    document.getElementById('errorLevelLabel').addEventListener('mouseout', function () {
+      document.getElementById('errorLevelHelpPopup').style.display = 'none';
+    });
+
+    document.getElementById('sizeRatioLabel').addEventListener('mouseover', function () {
+      document.getElementById('sizeRatioHelpPopup').style.display = 'block';
+    });
+
+    document.getElementById('sizeRatioLabel').addEventListener('mouseout', function () {
+      document.getElementById('sizeRatioHelpPopup').style.display = 'none';
+    });
+  </script>
+</body>
+
+</html>
