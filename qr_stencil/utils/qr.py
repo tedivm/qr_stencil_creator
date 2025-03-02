@@ -20,10 +20,44 @@ error_levels = {
 
 default_factory = qr_svg.SvgImage
 
+
+class SvgSquareDrawerColor(SvgSquareDrawer):
+    def __init__(self, *, color: str = "black", **kwargs):
+        super().__init__(**kwargs)
+        self.color = color
+
+    def el(self, box):
+        coords = self.coords(box)
+        return ET.Element(
+            self.tag_qname,  # type: ignore
+            x=self.img.units(coords.x0),
+            y=self.img.units(coords.y0),
+            width=self.unit_size,
+            height=self.unit_size,
+            style=f"fill: {self.color}; stroke: {self.color};",
+        )
+
+
+class SvgCircleDrawerColor(SvgCircleDrawer):
+    def __init__(self, *, color: str = "black", **kwargs):
+        super().__init__(**kwargs)
+        self.color = color
+
+    def el(self, box):
+        coords = self.coords(box)
+        return ET.Element(
+            self.tag_qname,  # type: ignore
+            cx=self.img.units(coords.xh),
+            cy=self.img.units(coords.yh),
+            r=self.radius,
+            fill=self.color,
+        )
+
+
 styles = {
     qr_svg.SvgImage: {
-        "square": SvgSquareDrawer,
-        "circle": SvgCircleDrawer,
+        "square": SvgSquareDrawerColor,
+        "circle": SvgCircleDrawerColor,
     },
     qr_svg.SvgPathImage: {
         "square": SvgPathSquareDrawer,
@@ -37,12 +71,12 @@ class NullDrawer(SvgSquareDrawer):
         return
 
 
-def add_eyes(img: qr_svg.SvgImage, size_ratio: float):
+def add_eyes(img: qr_svg.SvgImage, size_ratio: float, color: str = "black"):
     for corner in ["top_left", "top_right", "bottom_left"]:
-        draw_eye(img, corner, img.box_size, img.border, size_ratio)
+        draw_eye(img, corner, img.box_size, img.border, size_ratio, color)
 
 
-def draw_eye(img, corner, unit_size, border_size, size_ratio):
+def draw_eye(img, corner, unit_size, border_size, size_ratio, color):
 
     if corner == "top_left":
         start_x = border_size
@@ -66,6 +100,7 @@ def draw_eye(img, corner, unit_size, border_size, size_ratio):
             y=img.units(float(start_y)),
             width=img.units(float(unit_size) * 7),
             height=img.units(float(unit_size)),
+            style=f"fill: {color}; stroke: {color};",
         )
     )
 
@@ -77,6 +112,7 @@ def draw_eye(img, corner, unit_size, border_size, size_ratio):
             y=img.units(float(start_y + (unit_size * 6))),
             width=img.units(float(unit_size) * 7),
             height=img.units(float(unit_size)),
+            style=f"fill: {color}; stroke: {color};",
         )
     )
 
@@ -88,6 +124,7 @@ def draw_eye(img, corner, unit_size, border_size, size_ratio):
             y=img.units(float(start_y + unit_size + buffer)),
             width=img.units(float(unit_size)),
             height=img.units((float(unit_size) * 5) - (buffer * 2)),
+            style=f"fill: {color}; stroke: {color};",
         )
     )
 
@@ -99,6 +136,7 @@ def draw_eye(img, corner, unit_size, border_size, size_ratio):
             y=img.units(float(start_y + unit_size + buffer)),
             width=img.units(float(unit_size)),
             height=img.units((float(unit_size) * 5) - (buffer * 2)),
+            style=f"fill: {color}; stroke: {color};",
         )
     )
 
@@ -110,6 +148,7 @@ def draw_eye(img, corner, unit_size, border_size, size_ratio):
             y=img.units(float(start_y + (unit_size * 2))),
             width=img.units(float(unit_size) * 3),
             height=img.units(float(unit_size) * 3),
+            style=f"fill: {color}; stroke: {color};",
         )
     )
 
@@ -122,8 +161,9 @@ def generate_qr_svg(
     size_ratio: float = 0.8,
     stencil: bool = True,
     style: str = "square",
-    eye_drawer=None,
     factory_class=default_factory,
+    color: str = "black",
+    background: str | None = None,
 ):
 
     drawer_class = styles.get(factory_class, {}).get(style, None)
@@ -131,7 +171,7 @@ def generate_qr_svg(
         raise ValueError(
             f"Invalid style {style} factory class {factory_class.__name__}"
         )
-    module_drawer = drawer_class(size_ratio=decimal.Decimal(size_ratio))
+    module_drawer = drawer_class(size_ratio=decimal.Decimal(size_ratio), color=color)
 
     if error_level not in error_levels:
         raise ValueError("Invalid error level")
@@ -151,8 +191,14 @@ def generate_qr_svg(
         eye_drawer=NullDrawer(),
     )
 
+    img.background = background
+
     stencil_ratio = size_ratio if stencil else 1
-    add_eyes(img, stencil_ratio)
+    add_eyes(
+        img,
+        size_ratio=stencil_ratio,
+        color=color,
+    )
 
     stream = BytesIO()
     img.save(stream)

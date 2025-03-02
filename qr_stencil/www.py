@@ -41,6 +41,8 @@ class ImageSchema(BaseModel):
     size_ratio: float = 0.8
     stencil: bool = True
     style: ImageStyles = "square"
+    color: str = "black"
+    background: str | None = None
 
 
 @app.get(
@@ -58,6 +60,8 @@ async def qr_stencil(img_request: Annotated[ImageSchema, Query()], format: str):
             size_ratio=img_request.size_ratio,
             stencil=img_request.stencil,
             style=img_request.style,
+            color=img_request.color,
+            background=img_request.background,
         )
         return Response(content=stencil, media_type="image/svg+xml")
     else:

@@ -179,7 +179,8 @@
 
     .inline-label input[type="number"],
     .inline-label select,
-    .inline-label input[type="checkbox"] {
+    .inline-label input[type="checkbox"],
+    .inline-label input[type="color"] {
       width: auto;
       flex: 1;
     }
@@ -244,6 +245,14 @@
       modules.
     </div>
 
+    <div class="inline-label">
+      <label for="color" id="colorLabel">QR Color ℹ️:</label>
+      <input type="color" id="color" name="color" value="#000000" required>
+    </div>
+    <div class="help-popup" id="colorHelpPopup">
+      Choose the color of the QR code. The default color is black.
+    </div>
+
     <button type="submit">Generate Image</button>
 
   </form>
@@ -273,6 +282,10 @@
           <td>QR Style:</td>
           <td id="qrStyle">Square</td>
         </tr>
+        <tr>
+          <td>QR Color:</td>
+          <td id="qrColor">#000000</td>
+        </tr>
       </table>
     </div>
     <button id="saveButton" style="display: block;">Save Image</button>
@@ -291,7 +304,8 @@
       const sizeRatio = document.getElementById('sizeRatio').value;
       const stencil = document.getElementById('stencil').checked ? 'true' : 'false';
       const style = document.getElementById('style').value;
-      const imageUrl = `/image.svg?msg=${encodeURIComponent(textInput)}&error_level=${errorLevel}&size_ratio=${sizeRatio / 100}&stencil=${stencil}&style=${style}`;
+      const color = document.getElementById('color').value;
+      const imageUrl = `/image.svg?msg=${encodeURIComponent(textInput)}&error_level=${errorLevel}&size_ratio=${sizeRatio / 100}&stencil=${stencil}&style=${style}&color=${encodeURIComponent(color)}`;
       const resultImage = document.getElementById('resultImage');
       resultImage.src = imageUrl;
       resultImage.style.display = 'block';
@@ -304,6 +318,7 @@
       document.getElementById('qrSizeRatio').textContent = `${sizeRatio}%`;
       document.getElementById('qrStencil').textContent = stencil === 'true' ? 'Yes' : 'No';
       document.getElementById('qrStyle').textContent = style.charAt(0).toUpperCase() + style.slice(1);
+      document.getElementById('qrColor').textContent = color;
     });
 
     document.getElementById('saveButton').addEventListener('click', function () {
@@ -330,6 +345,7 @@
     addPopupEvents('sizeRatioLabel', 'sizeRatioHelpPopup');
     addPopupEvents('stencilLabel', 'stencilHelpPopup');
     addPopupEvents('styleLabel', 'styleHelpPopup');
+    addPopupEvents('colorLabel', 'colorHelpPopup');
   </script>
 </body>
 
