@@ -12,6 +12,7 @@ from .utils.qr import generate_qr_svg
 app = FastAPI()
 
 static_file_path = os.path.dirname(os.path.realpath(__file__)) + "/static"
+template_file_path = os.path.dirname(os.path.realpath(__file__)) + "/templates"
 app.mount("/static", StaticFiles(directory=static_file_path), name="static")
 
 
@@ -21,7 +22,7 @@ async def root():
     if settings.plausible_domain:
         plausible_tag = f'<script defer data-domain="{settings.plausible_domain}" src="https://plausible.io/js/script.js"></script>'
 
-    with open(static_file_path + "/index.html", "r") as f:
+    with open(template_file_path + "/index.html", "r") as f:
         content = f.read()
         content = content.replace("{{plausible_tag}}", plausible_tag)
 
