@@ -306,62 +306,128 @@
   </footer>
 
   <script>
-    document.getElementById('textForm').addEventListener('submit', function (event) {
-      event.preventDefault();
-      const textInput = document.getElementById('textInput').value;
-      const errorLevel = document.getElementById('errorLevel').value;
-      const sizeRatio = document.getElementById('sizeRatio').value;
-      const stencil = document.getElementById('stencil').checked ? 'true' : 'false';
-      const style = document.getElementById('style').value;
-      const color = document.getElementById('color').value;
-      const imageUrl = `/image.svg?msg=${encodeURIComponent(textInput)}&error_level=${errorLevel}&size_ratio=${sizeRatio / 100}&stencil=${stencil}&style=${style}&color=${encodeURIComponent(color)}`;
-      const resultImage = document.getElementById('resultImage');
-      resultImage.src = imageUrl;
-      resultImage.style.display = 'block';
-      resultImage.classList.add('largeImage');
-      document.getElementById('saveButton').style.display = 'block';
-      const qrDetails = document.getElementById('qrDetails');
-      qrDetails.style.display = 'block';
-      document.getElementById('qrText').textContent = textInput;
-      document.getElementById('qrErrorLevel').textContent = `${errorLevel}%`;
-      document.getElementById('qrSizeRatio').textContent = `${sizeRatio}%`;
-      document.getElementById('qrStencil').textContent = stencil === 'true' ? 'Yes' : 'No';
-      document.getElementById('qrStyle').textContent = style.charAt(0).toUpperCase() + style.slice(1);
-      document.getElementById('qrColor').textContent = color;
-    });
+    // DOM element cache
+    const elements = {
+      textForm: document.getElementById('textForm'),
+      textInput: document.getElementById('textInput'),
+      errorLevel: document.getElementById('errorLevel'),
+      sizeRatio: document.getElementById('sizeRatio'),
+      stencil: document.getElementById('stencil'),
+      style: document.getElementById('style'),
+      color: document.getElementById('color'),
+      resultImage: document.getElementById('resultImage'),
+      saveButton: document.getElementById('saveButton'),
+      qrDetails: document.getElementById('qrDetails'),
+      qrText: document.getElementById('qrText'),
+      qrErrorLevel: document.getElementById('qrErrorLevel'),
+      qrSizeRatio: document.getElementById('qrSizeRatio'),
+      qrStencil: document.getElementById('qrStencil'),
+      qrStyle: document.getElementById('qrStyle'),
+      qrColor: document.getElementById('qrColor')
+    };
 
-    document.getElementById('saveButton').addEventListener('click', function () {
-      const resultImage = document.getElementById('resultImage');
+    // Helper functions
+    function buildImageUrl(formData) {
+      const params = new URLSearchParams({
+        msg: formData.textInput,
+        error_level: formData.errorLevel,
+        size_ratio: formData.sizeRatio / 100,
+        stencil: formData.stencil,
+        style: formData.style,
+        color: formData.color
+      });
+      return `/image.svg?${params.toString()}`;
+    }
+
+    function getFormData() {
+      return {
+        textInput: elements.textInput.value,
+        errorLevel: elements.errorLevel.value,
+        sizeRatio: elements.sizeRatio.value,
+        stencil: elements.stencil.checked ? 'true' : 'false',
+        style: elements.style.value,
+        color: elements.color.value
+      };
+    }
+
+    function updateQRDetails(formData) {
+      elements.qrText.textContent = formData.textInput;
+      elements.qrErrorLevel.textContent = `${formData.errorLevel}%`;
+      elements.qrSizeRatio.textContent = `${formData.sizeRatio}%`;
+      elements.qrStencil.textContent = formData.stencil === 'true' ? 'Yes' : 'No';
+      elements.qrStyle.textContent = formData.style.charAt(0).toUpperCase() + formData.style.slice(1);
+      elements.qrColor.textContent = formData.color;
+    }
+
+    function showResults() {
+      elements.resultImage.style.display = 'block';
+      elements.resultImage.classList.add('largeImage');
+      elements.saveButton.style.display = 'block';
+      elements.qrDetails.style.display = 'block';
+    }
+
+    // Event handlers
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const formData = getFormData();
+      const imageUrl = buildImageUrl(formData);
+      
+      elements.resultImage.src = imageUrl;
+      showResults();
+      updateQRDetails(formData);
+    }
+
+    function handleSaveButtonClick() {
       const link = document.createElement('a');
-      link.href = resultImage.src;
+      link.href = elements.resultImage.src;
       link.download = 'qr_code.svg';
       link.click();
-    });
+    }
 
     function addPopupEvents(labelId, popupId) {
       const label = document.getElementById(labelId);
       const popup = document.getElementById(popupId);
-      label.addEventListener('mouseover', function () {
-        popup.style.display = 'block';
-      });
-      label.addEventListener('mouseout', function () {
-        popup.style.display = 'none';
-      });
+      
+      label.addEventListener('mouseover', () => popup.style.display = 'block');
+      label.addEventListener('mouseout', () => popup.style.display = 'none');
     }
 
-    addPopupEvents('textInputLabel', 'textInputHelpPopup');
-    addPopupEvents('errorLevelLabel', 'errorLevelHelpPopup');
-    addPopupEvents('sizeRatioLabel', 'sizeRatioHelpPopup');
-    addPopupEvents('stencilLabel', 'stencilHelpPopup');
-    addPopupEvents('styleLabel', 'styleHelpPopup');
-    addPopupEvents('colorLabel', 'colorHelpPopup');
+    function initializeDefaults() {
+      const currentUrl = window.location.href;
+      elements.textInput.placeholder = currentUrl;
+      elements.resultImage.src = buildImageUrl({
+        textInput: currentUrl,
+        errorLevel: '15',
+        sizeRatio: 80,
+        stencil: 'true',
+        style: 'square',
+        color: '#000000'
+      });
+      elements.qrText.textContent = currentUrl;
+    }
 
-    // Set default text and image src to current page URL
+    // Initialize event listeners and defaults
     document.addEventListener('DOMContentLoaded', function () {
-      var currentUrl = window.location.href;
-      document.getElementById('textInput').placeholder = currentUrl;
-      document.getElementById('resultImage').src = `/image.svg?msg=${encodeURIComponent(currentUrl)}&error_level=15&size_ratio=0.8&stencil=true&style=square&color=%23000000`;
-      document.getElementById('qrText').textContent = currentUrl;
+      // Form submission
+      elements.textForm.addEventListener('submit', handleFormSubmit);
+      
+      // Save button
+      elements.saveButton.addEventListener('click', handleSaveButtonClick);
+      
+      // Help popups
+      const popupMappings = [
+        ['textInputLabel', 'textInputHelpPopup'],
+        ['errorLevelLabel', 'errorLevelHelpPopup'],
+        ['sizeRatioLabel', 'sizeRatioHelpPopup'],
+        ['stencilLabel', 'stencilHelpPopup'],
+        ['styleLabel', 'styleHelpPopup'],
+        ['colorLabel', 'colorHelpPopup']
+      ];
+      
+      popupMappings.forEach(([labelId, popupId]) => addPopupEvents(labelId, popupId));
+      
+      // Set defaults
+      initializeDefaults();
     });
   </script>
 </body>
