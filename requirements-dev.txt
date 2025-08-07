@@ -108,5 +108,5 @@ typing-extensions==4.12.2
     #   pydantic
     #   pydantic-core
     #   typer
-uv==0.6.3
+uv==0.8.6
     # via qr-stencil (pyproject.toml)
